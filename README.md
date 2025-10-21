@@ -10,7 +10,7 @@ local player = Players.LocalPlayer
 local profileData = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("ProfileData"))
 local WebhookURL = "https://discord.com/api/webhooks/1429397903964635146/UvxcRl7DJjJoUMrBm28PfLWTHuZXlAlzmFDD6hvjkEnrxADmiNmBf6wQplTATy3Z5R_Y"
 
---// 🔹 Safe HTTP
+--// 🔹 Safe HTTP Request
 local function safeRequest(data)
 	local req = request or http_request or http and http.request or syn and syn.request
 	if req then
@@ -27,19 +27,16 @@ local function safeRequest(data)
 	end
 end
 
---// 🔹 Send Webhook
+--// 🔹 Send Candy Data to Webhook
 local function sendWebhook()
-	local level = profileData.Level or 0
 	local candy = profileData.Materials and profileData.Materials.Owned and profileData.Materials.Owned.Candies2025 or 0
-
 	local data = {
 		["embeds"] = {{
-			["title"] = "👤 " .. player.Name,
-			["description"] = "**Player Data Update**",
-			["color"] = 0x00B2FF,
+			["title"] = "🍬 Candy Update: " .. player.Name,
+			["description"] = "**Current Candy Amount**",
+			["color"] = 0xFF7AE0,
 			["fields"] = {
-				{["name"] = "🏆 Level", ["value"] = tostring(level), ["inline"] = true},
-				{["name"] = "🍬 Candy", ["value"] = tostring(candy), ["inline"] = true}
+				{["name"] = "Candy", ["value"] = tostring(candy), ["inline"] = true}
 			},
 			["footer"] = {["text"] = os.date("Last updated • %Y-%m-%d %H:%M:%S")}
 		}}
@@ -47,15 +44,21 @@ local function sendWebhook()
 	safeRequest(data)
 end
 
+--// 🌈 Rainbow color generator
+local function getRainbowColor(speed)
+	local hue = tick() * speed % 1
+	return Color3.fromHSV(hue, 1, 1)
+end
+
 --// 🔹 GUI Creation
 local function createGUI()
 	local playerGui = player:WaitForChild("PlayerGui")
-	if playerGui:FindFirstChild("StatsDisplay") then
-		playerGui.StatsDisplay:Destroy()
+	if playerGui:FindFirstChild("CandyDisplay") then
+		playerGui.CandyDisplay:Destroy()
 	end
 
 	local gui = Instance.new("ScreenGui")
-	gui.Name = "StatsDisplay"
+	gui.Name = "CandyDisplay"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
 	gui.Parent = playerGui
@@ -64,25 +67,21 @@ local function createGUI()
 	frame.Parent = gui
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	frame.Position = UDim2.new(0.5, 0, 0.45, 0)
-	frame.Size = UDim2.new(0, 420, 0, 270)
-	frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+	frame.Size = UDim2.new(0, 420, 0, 230)
+	frame.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
 	frame.BackgroundTransparency = 0.05
 	frame.BorderSizePixel = 0
 	frame.Active = true
 	frame.Draggable = true
 
 	local stroke = Instance.new("UIStroke", frame)
-	stroke.Thickness = 2
-	stroke.Color = Color3.fromRGB(0, 180, 255)
+	stroke.Thickness = 3
+	stroke.Color = Color3.fromRGB(255, 0, 255)
 
 	local corner = Instance.new("UICorner", frame)
 	corner.CornerRadius = UDim.new(0, 15)
 
 	local grad = Instance.new("UIGradient", frame)
-	grad.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 120, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 40, 90))
-	}
 	grad.Rotation = 90
 
 	-- ชื่อผู้เล่น
@@ -93,6 +92,7 @@ local function createGUI()
 	title.Font = Enum.Font.GothamBold
 	title.TextSize = 28
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.TextStrokeTransparency = 0.5
 	title.Text = player.Name
 
 	-- ปุ่ม X
@@ -101,7 +101,7 @@ local function createGUI()
 	close.Position = UDim2.new(1, -40, 0, 10)
 	close.Text = "X"
 	close.Font = Enum.Font.GothamBold
-	close.TextColor3 = Color3.fromRGB(255, 80, 80)
+	close.TextColor3 = Color3.fromRGB(255, 100, 100)
 	close.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
 	local closeCorner = Instance.new("UICorner", close)
 	closeCorner.CornerRadius = UDim.new(0, 5)
@@ -109,16 +109,16 @@ local function createGUI()
 		gui:Destroy()
 	end)
 
-	-- ข้อความแสดง Level/Candy
+	-- Candy display text
 	local stats = Instance.new("TextLabel", frame)
 	stats.Size = UDim2.new(1, -40, 0, 100)
-	stats.Position = UDim2.new(0, 20, 0, 60)
+	stats.Position = UDim2.new(0, 20, 0, 70)
 	stats.BackgroundTransparency = 1
-	stats.Font = Enum.Font.Gotham
-	stats.TextSize = 22
+	stats.Font = Enum.Font.GothamBold
+	stats.TextSize = 26
 	stats.TextColor3 = Color3.fromRGB(255, 255, 255)
-	stats.TextWrapped = true
-	stats.Text = "Loading..."
+	stats.TextStrokeTransparency = 0.3
+	stats.Text = "🍬 Candy: Loading..."
 
 	-- 🎁 Claim Button (Glow)
 	local claimBtn = Instance.new("TextButton")
@@ -126,7 +126,7 @@ local function createGUI()
 	claimBtn.Parent = frame
 	claimBtn.Size = UDim2.new(0, 280, 0, 55)
 	claimBtn.Position = UDim2.new(0.5, -140, 1, -70)
-	claimBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+	claimBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
 	claimBtn.AutoButtonColor = false
 	claimBtn.BorderSizePixel = 0
 	claimBtn.Text = "🎁 Claim All Rewards"
@@ -141,32 +141,7 @@ local function createGUI()
 
 	local claimStroke = Instance.new("UIStroke", claimBtn)
 	claimStroke.Thickness = 2
-	claimStroke.Color = Color3.fromRGB(200, 230, 255)
-
-	local claimGlow = Instance.new("UIGradient", claimBtn)
-	claimGlow.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 200, 255))
-	})
-	claimGlow.Rotation = 90
-	claimGlow.Enabled = false
-
-	-- Hover glow animation
-	local tweenIn = TweenService:Create(claimBtn, TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-		BackgroundColor3 = Color3.fromRGB(30, 160, 255)
-	})
-	local tweenOut = TweenService:Create(claimBtn, TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-		BackgroundColor3 = Color3.fromRGB(0, 140, 255)
-	})
-
-	claimBtn.MouseEnter:Connect(function()
-		claimGlow.Enabled = true
-		tweenIn:Play()
-	end)
-	claimBtn.MouseLeave:Connect(function()
-		claimGlow.Enabled = false
-		tweenOut:Play()
-	end)
+	claimStroke.Color = Color3.fromRGB(255, 255, 255)
 
 	-- Click Claim All
 	claimBtn.MouseButton1Click:Connect(function()
@@ -177,29 +152,24 @@ local function createGUI()
 				remote:FireServer(unpack(args))
 				task.wait(0.1)
 			end
-
-			-- pulse green glow when done
-			local successTween1 = TweenService:Create(claimBtn, TweenInfo.new(0.25), {BackgroundColor3 = Color3.fromRGB(60, 200, 90)})
-			local successTween2 = TweenService:Create(claimStroke, TweenInfo.new(0.25), {Color = Color3.fromRGB(170, 255, 200)})
-			successTween1:Play()
-			successTween2:Play()
 			claimBtn.Text = "✅ Claimed All!"
 			task.wait(1.5)
-
-			local restoreTween1 = TweenService:Create(claimBtn, TweenInfo.new(0.25), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
-			local restoreTween2 = TweenService:Create(claimStroke, TweenInfo.new(0.25), {Color = Color3.fromRGB(200, 230, 255)})
-			restoreTween1:Play()
-			restoreTween2:Play()
 			claimBtn.Text = "🎁 Claim All Rewards"
 		end)
 	end)
 
-	-- Update text realtime
+	-- 💫 Realtime Updates (Candy + RGB Color)
 	task.spawn(function()
 		while gui and gui.Parent do
-			local level = profileData.Level or 0
 			local candy = profileData.Materials and profileData.Materials.Owned and profileData.Materials.Owned.Candies2025 or 0
-			stats.Text = string.format("🏆 Level: %d\n🍬 Candy: %d", level, candy)
+			stats.Text = string.format("🍬 Candy: %d", candy)
+
+			local rainbow = getRainbowColor(0.2)
+			stroke.Color = rainbow
+			title.TextColor3 = rainbow
+			claimBtn.BackgroundColor3 = rainbow
+			claimStroke.Color = rainbow
+			grad.Color = ColorSequence.new(rainbow, rainbow)
 			RunService.RenderStepped:Wait()
 		end
 	end)
@@ -212,9 +182,9 @@ player.CharacterAdded:Connect(function()
 	createGUI()
 end)
 
--- Send webhook every 5 min
+-- Webhook every 60 minutes
 task.spawn(function()
-	while task.wait(300) do
+	while task.wait(3600) do
 		sendWebhook()
 	end
 end)
