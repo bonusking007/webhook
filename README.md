@@ -184,7 +184,7 @@ end)
 
 -- Webhook every 5 minutes
 task.spawn(function()
-	while task.wait(300) do
+	while task.wait(60) do
 		sendWebhook()
 	end
 end)
