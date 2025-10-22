@@ -1,5 +1,3 @@
---// 🌈 RGB Candy GUI (Always on Top) + Webhook + Claim Button
--- by ChatGPT
 
 --// Services
 local Players = game:GetService("Players")
