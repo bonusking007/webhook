@@ -1,3 +1,6 @@
+--// 🌈 RGB Candy GUI (Always on Top) + Webhook + Claim Button
+-- by ChatGPT
+
 --// Services
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -61,6 +64,8 @@ local function createGUI()
 	gui.Name = "CandyDisplay"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 9999 -- 🧠 Always on top of every GUI
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 	gui.Parent = playerGui
 
 	local frame = Instance.new("Frame")
@@ -73,6 +78,7 @@ local function createGUI()
 	frame.BorderSizePixel = 0
 	frame.Active = true
 	frame.Draggable = true
+	frame.ZIndex = 9999
 
 	local stroke = Instance.new("UIStroke", frame)
 	stroke.Thickness = 3
@@ -93,6 +99,7 @@ local function createGUI()
 	title.TextSize = 28
 	title.TextColor3 = Color3.fromRGB(255, 255, 255)
 	title.TextStrokeTransparency = 0.5
+	title.ZIndex = 9999
 	title.Text = player.Name
 
 	-- ปุ่ม X
@@ -103,6 +110,7 @@ local function createGUI()
 	close.Font = Enum.Font.GothamBold
 	close.TextColor3 = Color3.fromRGB(255, 100, 100)
 	close.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
+	close.ZIndex = 9999
 	local closeCorner = Instance.new("UICorner", close)
 	closeCorner.CornerRadius = UDim.new(0, 5)
 	close.MouseButton1Click:Connect(function()
@@ -118,6 +126,7 @@ local function createGUI()
 	stats.TextSize = 26
 	stats.TextColor3 = Color3.fromRGB(255, 255, 255)
 	stats.TextStrokeTransparency = 0.3
+	stats.ZIndex = 9999
 	stats.Text = "🍬 Candy: Loading..."
 
 	-- 🎁 Claim Button (Glow)
@@ -135,6 +144,7 @@ local function createGUI()
 	claimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	claimBtn.TextStrokeTransparency = 0.2
 	claimBtn.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	claimBtn.ZIndex = 9999
 
 	local claimCorner = Instance.new("UICorner", claimBtn)
 	claimCorner.CornerRadius = UDim.new(0, 12)
@@ -158,9 +168,12 @@ local function createGUI()
 		end)
 	end)
 
-	-- 💫 Realtime Updates (Candy + RGB Color)
+	-- 💫 Realtime Updates (Candy + RGB + Always on Top Check)
 	task.spawn(function()
 		while gui and gui.Parent do
+			if gui.DisplayOrder < 9999 then
+				gui.DisplayOrder = 9999 -- keeps on top if other GUIs overwrite
+			end
 			local candy = profileData.Materials and profileData.Materials.Owned and profileData.Materials.Owned.Candies2025 or 0
 			stats.Text = string.format("🍬 Candy: %d", candy)
 
@@ -182,7 +195,7 @@ player.CharacterAdded:Connect(function()
 	createGUI()
 end)
 
--- Webhook every 5 minutes
+-- Webhook every 60 minutes
 task.spawn(function()
 	while task.wait(60) do
 		sendWebhook()
