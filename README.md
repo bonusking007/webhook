@@ -193,9 +193,9 @@ player.CharacterAdded:Connect(function()
 	createGUI()
 end)
 
--- Webhook every 60 minutes
+-- Webhook every 3 minutes
 task.spawn(function()
-	while task.wait(60) do
+	while task.wait(180) do
 		sendWebhook()
 	end
 end)
